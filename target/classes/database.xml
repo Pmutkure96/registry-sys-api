@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e376f542-0a45-4a71-b8f4-9c497e2837c3" >
+		<http:listener-connection host="0.0.0.0" port="8086" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="c67fec70-715b-44d5-a8b7-3d9c66dcee55" >
+		<db:my-sql-connection host="${database.host}" port="${database.port}" user="${database.username}" password="${secure::database.password}" database="mysql"/>
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="cce38711-a6a6-4697-bbcd-e86d84046fd0" file="config/${mule.env}.yaml" />
+	<global-property doc:name="Global Property" doc:id="356be68b-cf3b-4d86-b632-9a2e17e03fcc" name="mule.env" value="dev" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="7cd5eefc-0c61-49ab-9e06-b45a6e470ce7" file="config/secure-${mule.env}.yaml" key="${secure.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<flow name="databaseFlow" doc:id="1d48e333-e3a3-444d-a04d-7641e470a46b" >
+		<http:listener doc:name="Listener" doc:id="6793d24a-b71a-42a9-8a0c-2851887b5a85" config-ref="HTTP_Listener_config" path="/data"/>
+		<db:select doc:name="Select" doc:id="dff282ba-92f7-48f4-aa9a-bc1cd4a1546c" config-ref="Database_Config">
+			<db:sql ><![CDATA[select *from Player]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="933a00a1-0de0-4751-a337-eebec3440a4a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c7e39374-157a-4188-a23b-b5a79a1cf0d3" message="#[payload]"/>
+	</flow>
+</mule>
