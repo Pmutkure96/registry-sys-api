@@ -136,6 +136,7 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="post:\customers:application\json:ibs-registry-system-api-config">
+	<logger level="INFO" doc:name="Logger" doc:id="d3c1f3c6-759f-4e0f-9bad-013abbb4d1d6" message="Flow Started" />
         <ee:transform>
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
